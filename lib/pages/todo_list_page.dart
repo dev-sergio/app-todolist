@@ -14,6 +14,8 @@ class _TodoListPageState extends State<TodoListPage> {
   final TextEditingController tarefasController = TextEditingController();
 
   List<Tarefas> tarefas = [];
+  Tarefas? tarefaDeletada;
+  int? indexTarefaDeletada;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,7 @@ class _TodoListPageState extends State<TodoListPage> {
                         decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             labelText: 'Adicione uma tarefa',
-                            hintText: 'Estudar flutter'),
+                            hintText: 'Tarefas'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -101,8 +103,32 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   void onDelete(Tarefas tarefa){
+    tarefaDeletada = tarefa;
+    indexTarefaDeletada = tarefas.indexOf(tarefa);
+
     setState(() {
       tarefas.remove(tarefa);
     });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Tarefa ${tarefa.title} foi removida com sucesso!',
+          style: const TextStyle(color: Color(0xffffDDff)),
+        ),
+        backgroundColor: Colors.deepPurple,
+        action: SnackBarAction(
+          label: 'Desfazer',
+          textColor: const Color(0xffff3737),
+          onPressed: () {
+            setState(() {
+              tarefas.insert(indexTarefaDeletada!, tarefaDeletada!);
+            });
+          },
+        ),
+        duration: const Duration(seconds: 5),
+      ),
+    );
   }
 }
