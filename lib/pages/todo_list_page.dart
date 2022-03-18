@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo_list/repositories/tarefas_repository.dart';
 import 'package:todo_list/widget/todo_list_item.dart';
 
 import '../models/tarefas.dart';
@@ -12,6 +13,7 @@ class TodoListPage extends StatefulWidget {
 
 class _TodoListPageState extends State<TodoListPage> {
   final TextEditingController tarefasController = TextEditingController();
+  final TarefasRepository tarefasRepository = TarefasRepository();
 
   List<Tarefas> tarefas = [];
   Tarefas? tarefaDeletada;
@@ -48,8 +50,9 @@ class _TodoListPageState extends State<TodoListPage> {
                             date: DateTime.now(),
                           );
                           tarefas.add(tarefa);
-                          tarefasController.clear();
                         });
+                        tarefasController.clear();
+                        tarefasRepository.saveListaTarefas(tarefas);
                       },
                       style: ElevatedButton.styleFrom(
                           primary: const Color(0xff00d7f3),
@@ -66,11 +69,8 @@ class _TodoListPageState extends State<TodoListPage> {
                   child: ListView(
                     shrinkWrap: true,
                     children: [
-                      for(Tarefas tarefa in tarefas)
-                        TodoListItem(
-                          tarefas: tarefa,
-                          onDelete: onDelete
-                        ),
+                      for (Tarefas tarefa in tarefas)
+                        TodoListItem(tarefas: tarefa, onDelete: onDelete),
                     ],
                   ),
                 ),
@@ -84,7 +84,7 @@ class _TodoListPageState extends State<TodoListPage> {
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: showDialogDeletaTodasTarefas,
                       child: const Text(
                         'Limpar tudo',
                       ),
@@ -102,7 +102,7 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 
-  void onDelete(Tarefas tarefa){
+  void onDelete(Tarefas tarefa) {
     tarefaDeletada = tarefa;
     indexTarefaDeletada = tarefas.indexOf(tarefa);
 
@@ -130,5 +130,37 @@ class _TodoListPageState extends State<TodoListPage> {
         duration: const Duration(seconds: 5),
       ),
     );
+  }
+
+  void showDialogDeletaTodasTarefas() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('Limpar tudo?'),
+              content: const Text(
+                  'Você tem certeza que deseja apagar todas as tarefas?'),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style:
+                        TextButton.styleFrom(primary: const Color(0xff00d7f3)),
+                    child: const Text('Cancelar')),
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      deletaTodasTarefas();
+                    },
+                    style: TextButton.styleFrom(primary: Colors.red),
+                    child: const Text('Limpar'))
+              ],
+        ));
+  }
+
+  void deletaTodasTarefas(){
+    setState(() {
+      tarefas.clear();
+    });
   }
 }

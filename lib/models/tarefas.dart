@@ -4,4 +4,11 @@ class Tarefas{
 
   String title;
   DateTime date;
+
+  Map<String, dynamic> toJson(){
+    return {
+      'title': title,
+      'date': date.toIso8601String(),
+    };
+  }
 }
