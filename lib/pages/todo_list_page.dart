@@ -19,6 +19,18 @@ class _TodoListPageState extends State<TodoListPage> {
   Tarefas? tarefaDeletada;
   int? indexTarefaDeletada;
 
+  String? erroText;
+
+  @override
+  void initState() {
+    super.initState();
+    tarefasRepository.getListaTarefas().then((value) => {
+      setState(() {
+        tarefas = value;
+      })
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -34,22 +46,40 @@ class _TodoListPageState extends State<TodoListPage> {
                     Expanded(
                       child: TextField(
                         controller: tarefasController,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Adicione uma tarefa',
-                            hintText: 'Tarefas'),
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          labelText: 'Adicione uma tarefa',
+                          hintText: 'Tarefas',
+                          errorText: erroText,
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color(0xff00d7f3),
+                              width: 2
+                            ),
+                          ),
+                          labelStyle: const TextStyle(
+                            color: Color(0xff00d7f3),
+                          )
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () {
                         String text = tarefasController.text;
+                        if (text.isEmpty){
+                          setState(() {
+                            erroText = "O titulo não pode estar vazio";
+                          });
+                          return;
+                        }
                         setState(() {
                           Tarefas tarefa = Tarefas(
                             title: text,
                             date: DateTime.now(),
                           );
                           tarefas.add(tarefa);
+                          erroText = null;
                         });
                         tarefasController.clear();
                         tarefasRepository.saveListaTarefas(tarefas);
@@ -109,6 +139,8 @@ class _TodoListPageState extends State<TodoListPage> {
     setState(() {
       tarefas.remove(tarefa);
     });
+    tarefasRepository.saveListaTarefas(tarefas);
+
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -125,6 +157,8 @@ class _TodoListPageState extends State<TodoListPage> {
             setState(() {
               tarefas.insert(indexTarefaDeletada!, tarefaDeletada!);
             });
+            tarefasRepository.saveListaTarefas(tarefas);
+
           },
         ),
         duration: const Duration(seconds: 5),
@@ -162,5 +196,6 @@ class _TodoListPageState extends State<TodoListPage> {
     setState(() {
       tarefas.clear();
     });
+    tarefasRepository.saveListaTarefas(tarefas);
   }
 }
